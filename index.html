@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DELTA-test</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.0/dist/vue.global.min.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+</head>
+<body>
+<div id="app" class="container mt-5">
+    <table class="table table-bordered text-center">
+        <thead>
+            <tr class="table-header">
+                <th class="table-header__indicator">Показатель</th>
+                <th class="table-header__current-day">Текущий день</th>
+                <th class="table-header__yesterday">Вчера</th>
+                <th class="table-header__week">Этот день недели</th> 
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="(item, index) in tableData" :key="index" @click="selectRow(index)" :class="{selected: selectedIndex === index}">
+                <td :style="{ backgroundColor: '#f0f0f0' }">{{ item.label }}</td> 
+                <td :style="getCurrentDayStyle()">{{ item.current }}</td> 
+                <td :style="getYesterdayStyle(item.changeYesterday)">{{ item.yesterday }} 
+                    <span :style="{ color: getChangeColor(item.changeYesterday) }">({{ item.changeYesterday }}%)</span>
+                </td>
+                <td :style="{ backgroundColor: '#f0f0f0' }">{{ item.week }}</td> 
+            </tr>
+        </tbody>
+    </table>
+    <div id="chart-container" v-if="selectedIndex !== null"></div>
+</div>
+
+<style>
+     td {
+      cursor: pointer;
+    }
+
+    .table-header__indicator {
+      background-color: rgb(240, 240, 240)!important;
+    }
+
+    .table-header__current-day {
+      background-color: rgb(217, 237, 247)!important;
+    }
+
+    .table-header__yesterday {
+      background-color: rgb(240, 240, 240)!important;
+    }
+
+    .table-header__week {
+      background-color: rgb(240, 240, 240)!important;
+    }
+
+    .selected {
+        background-color: #f0f8ff;
+    }
+
+    .table-bordered>:not(caption)>*, .table-bordered>:not(caption)>*>* {
+      border: 3px solid #fff;
+    }
+</style>
+
+<script>
+const { createApp, nextTick } = Vue;
+
+createApp({
+    data() {
+        return {
+            selectedIndex: null,
+            tableData: [
+                { label: 'Выручка, руб', current: 500521, yesterday: 480521, changeYesterday: 4, week: 4805121 },
+                { label: 'Наличные', current: 300000, yesterday: 300000, changeYesterday: 0, week: 300000 },
+                { label: 'Безналичный расчет', current: 100000, yesterday: 100000, changeYesterday: 0, week: 100000 },
+                { label: 'Кредитные карты', current: 100521, yesterday: 80521, changeYesterday: 25, week: 100521 },
+                { label: 'Средний чек, руб', current: 1900, yesterday: 1900, changeYesterday: 0, week: 1900 },
+                { label: 'Средний гость, руб', current: 1200, yesterday: 1000, changeYesterday: 20, week: 1100 },
+                { label: 'Удаления из чека (после оплаты), руб', current: 1800, yesterday: 900, changeYesterday: 50, week: 900 },
+                { label: 'Удаления из чека (до оплаты), руб', current: 1300, yesterday: 1300, changeYesterday: 0, week: 1300 },
+                { label: 'Количество чеков', current: 36, yesterday: 34, changeYesterday: -6, week: 34 },
+                { label: 'Количество гостей', current: 34, yesterday: 36, changeYesterday: -6, week: 32 }
+            ]
+        };
+    },
+    methods: {
+        selectRow(index) {
+            this.selectedIndex = index;
+            nextTick(() => this.renderChart());
+        },
+        renderChart() {
+            if (this.selectedIndex !== null) {
+                Highcharts.chart('chart-container', {
+                    chart: { type: 'line' },
+                    title: { text: this.tableData[this.selectedIndex].label },
+                    xAxis: { categories: ['Текущий день', 'Вчера', 'Эта неделя'] },
+                    series: [{
+                        name: this.tableData[this.selectedIndex].label,
+                        data: [this.tableData[this.selectedIndex].current, this.tableData[this.selectedIndex].yesterday, this.tableData[this.selectedIndex].week]
+                    }]
+                });
+            }
+        },
+        getCurrentDayStyle() {
+            return { backgroundColor: '#d9edf7' }; 
+        },
+        getYesterdayStyle(change) {
+            if (change > 0) {
+                return { backgroundColor: '#dff0d8' }; 
+            } else if (change < 0) {
+                return { backgroundColor: '#f2dede' }; 
+            }
+            return { backgroundColor: '#f0f0f0' }; 
+        },
+        getChangeColor(change) {
+            if (change > 0) return 'green';
+            if (change < 0) return 'red';
+            return 'green'; 
+        }
+    }
+}).mount('#app');
+</script>
+</body>
+</html>
